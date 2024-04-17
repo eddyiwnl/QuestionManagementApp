@@ -1,7 +1,7 @@
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 # Necessary installations before running:
-`npm i fix-esm`
+`npm i fix-esm` \
 `npm i react-router-dom`
 
 ## Available Scripts
