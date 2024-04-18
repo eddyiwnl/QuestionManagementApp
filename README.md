@@ -1,10 +1,10 @@
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 # How to run:
-1. Clone this repository \
-2. Navigate to the folder \
-3. `npm i` \
-4. Follow the instructions for the below scripts \
+1. Clone this repository 
+2. Navigate to the folder 
+3. `npm i` 
+4. Follow the instructions for the below scripts 
 
 ## Available Scripts
 
