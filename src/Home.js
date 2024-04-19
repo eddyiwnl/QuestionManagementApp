@@ -68,15 +68,65 @@ const Home = () => {
     }
   }
 
+  function handleNewData(event) {
+    const { name, value } = event.target;
+    setNewQuestionData(prevState => ({
+      ...prevState,
+      [name]: value,
+    }));
+  }
+
   function handleNewQuestion() {
     console.log('Creating a new question...');
-    setShowForm(true); // Show the form when "New Question" is clicked
+    setShowForm(true);
+  }
+
+  function handleSubmitQuestion() { //TODO: MCQ, numerical, matching, multiple answers, ...
+    console.log('Submitting question...');
+    console.log('Form Values:', newQuestionData);
+
+    if(newQuestionData.type=="essay_question") {
+      const { SCBT, number, points, quarter, quiz_title, stem, type } = newQuestionData;
+      const jsonEntry = JSON.stringify({ SCBT, number, points, quarter, quiz_title, stem, type });
+      console.log('JSON entry:', jsonEntry);
+      setEditJson(prevEditJson => (prevEditJson ? [...prevEditJson, {
+        SCBT: newQuestionData.SCBT,
+        number: newQuestionData.number,
+        points: newQuestionData.points,
+        quarter: newQuestionData.quarter,
+        quiz_title: newQuestionData.quiz_title,
+        stem: newQuestionData.stem,
+        type: newQuestionData.type
+      }] : [{
+        SCBT: newQuestionData.SCBT,
+        number: newQuestionData.number,
+        points: newQuestionData.points,
+        quarter: newQuestionData.quarter,
+        quiz_title: newQuestionData.quiz_title,
+        stem: newQuestionData.stem,
+        type: newQuestionData.type
+      }]));
+    }
+
+    setNewQuestionData({ // resetting form
+      quiz_title: '',
+      SCBT: '',
+      quarter: '',
+      number: '',
+      points: '',
+      stem: '',
+      type: '',
+      answer_ranges: [],
+      choices: []
+    });
+    setShowForm(false);
   }
 
   useEffect(() => {
     if (editJson) {
       const titles = [...new Set(editJson.map(item => item.quiz_title))];
       setQuizTitles(titles.sort());
+      console.log(editJson);
     }
   }, [editJson]);
 
@@ -112,43 +162,44 @@ const Home = () => {
         {showForm && (
         <div className="form-container">
           <h3>Add New Question</h3>
-          <form>
-            <label htmlFor="scbtInput">SCBT:</label>
-            <input type="text" id="scbtInput" name="scbt"/><br />
-            <label htmlFor="quizTitleInput">Quiz Title:</label>
-            <input type="text" id="quizTitleInput" name="quizTitle"/><br />
+            <form>
+              <label htmlFor="scbtInput">SCBT:</label>
+              <input type="text" id="scbtInput" name="SCBT" value={newQuestionData.SCBT} onChange={handleNewData} /><br />
 
-            <label htmlFor="quarterSelect">Quarter:</label>
-            <select id="quarterSelect" name="quarter">
-              <option value="">Select Quarter</option>
-              <option value="Q1">Q1</option>
-              <option value="Q2">Q2</option>
-              <option value="Q3">Q3</option>
-              <option value="Q4">Q4</option>
-            </select><br />
+              <label htmlFor="quizTitleInput">Quiz Title:</label>
+              <input type="text" id="quizTitleInput" name="quiz_title" value={newQuestionData.quiz_title} onChange={handleNewData} /><br />
 
-            <label htmlFor="numberInput">Number:</label>
-            <input type="number" id="numberInput" name="number"/><br />
+              <label htmlFor="quarterSelect">Quarter:</label>
+              <select id="quarterSelect" name="quarter" value={newQuestionData.quarter} onChange={handleNewData}>
+                <option value="">Select Quarter</option>
+                <option value="Q1">Q1</option>
+                <option value="Q2">Q2</option>
+                <option value="Q3">Q3</option>
+                <option value="Q4">Q4</option>
+              </select><br />
 
-            <label htmlFor="pointsInput">Points:</label>
-            <input type="number" id="pointsInput" name="points"/><br />
+              <label htmlFor="numberInput">Number:</label>
+              <input type="number" id="numberInput" name="number" value={newQuestionData.number} onChange={handleNewData} /><br />
 
-            <label htmlFor="stemTextarea">Stem:</label>
-            <textarea id="stemTextarea" name="stem"/><br />
+              <label htmlFor="pointsInput">Points:</label>
+              <input type="number" id="pointsInput" name="points" value={newQuestionData.points} onChange={handleNewData} /><br />
 
-            <label htmlFor="typeSelect">Type:</label>
-            <select id="typeSelect" name="type">
-              <option value="">Select Type</option>
-              <option value="multiple_choice_question">Multiple Choice</option>
-              <option value="numerical_question">Numerical</option>
-              <option value="multiple_answers_question">Multiple Answers</option>
-              <option value="matching_question">Matching</option>
-              <option value="essay_question">Essay</option>
-              {/* Add more options for other question types */}
-            </select><br />
+              <label htmlFor="stemTextarea">Stem:</label>
+              <textarea id="stemTextarea" name="stem" value={newQuestionData.stem} onChange={handleNewData} /><br />
 
-            <button type="button" onClick={handleNewQuestion}>Add Question</button>
-          </form>
+              <label htmlFor="typeSelect">Type:</label>
+              <select id="typeSelect" name="type" value={newQuestionData.type} onChange={handleNewData}>
+                <option value="">Select Type</option>
+                <option value="multiple_choice_question">Multiple Choice</option>
+                <option value="numerical_question">Numerical</option>
+                <option value="multiple_answers_question">Multiple Answers</option>
+                <option value="matching_question">Matching</option>
+                <option value="essay_question">Essay</option>
+                {/* Add more options for other question types */}
+              </select><br />
+
+              <button type="button" onClick={handleSubmitQuestion}>Submit Question</button>
+            </form>
         </div>
         )}
         </div>
