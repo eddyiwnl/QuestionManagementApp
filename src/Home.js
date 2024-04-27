@@ -6,10 +6,20 @@ const Home = () => {
 
   var currFile;
 
+  const inputMCQ = [
+    {
+      type: "text",
+      id: 1,
+      value: ""
+    }
+  ];
+
+  const [MCQ, setMCQ] = useState(inputMCQ);
   const [editJson, setEditJson] = useState(null);
   const [selectedQuizTitle, setSelectedQuizTitle] = useState('');
   const [quizTitles, setQuizTitles] = useState([]);
   const [showForm, setShowForm] = useState(false); // State to control form visibility
+  const [MCQVisible, setMCQVisible] = useState(false); // state to control multiple choice question 
   const [newQuestionData, setNewQuestionData] = useState({
     quiz_title: '',
     SCBT: '',
@@ -22,11 +32,44 @@ const Home = () => {
     choices: []
   });
 
+  // ******************
+  // This function handles when the "Add Choice" button is clicked
+  // ******************  
+  const addMCQInput = () => {
+    setMCQ(s => {
+      const lastId = s[s.length - 1].id;
+      return [
+        ...s,
+        {
+          type: "text",
+          value: ""
+        }
+      ];
+    });
+  };
+
+  // ******************
+  // This function handles when text is inputted into the MCQ fields
+  // ******************  
+  const handleMCQChange = e => {
+    e.preventDefault();
+
+    const index = e.target.id;
+    setMCQ(s => {
+      const newArr = s.slice();
+      newArr[index].value = e.target.value;
+
+      return newArr;
+    });
+  };
 
   function removeHtmlTags(text) {
     return text.replace(/<[^>]*>/g, '');
   }
 
+  // ******************
+  // This function handles when a json file is inputted
+  // ******************
   function handleChange(e) {
     currFile = e.target.files[0].name;
     console.log("input json file name: ", e.target.files[0].name);
@@ -49,6 +92,9 @@ const Home = () => {
   //   console.log("json element: ", editJson[0])
   // }
 
+  // ******************
+  // This function renders the Answer Ranges column in the table
+  // ******************
   function renderAnswerRanges(item) {
     switch (item.type) {
       case 'multiple_choice_question':
@@ -68,19 +114,49 @@ const Home = () => {
     }
   }
 
+  // ******************
+  // This function handles when the user enters in new question data
+  // ******************
   function handleNewData(event) {
     const { name, value } = event.target;
     setNewQuestionData(prevState => ({
       ...prevState,
       [name]: value,
     }));
+
+    // Check if the selected type is "multiple_choice_question" and set MCQVisible accordingly
+    if (name === 'type') {
+      if (value === 'multiple_choice_question') {
+        setMCQVisible(true);
+        console.log("Setting MCQ visible")
+      } else {
+        setMCQVisible(false);
+        console.log("Setting MCQ invisible")
+      }
+    }
   }
 
+  // ******************
+  // This function handles new MCQ choices in the form
+  // ******************
+  function addChoice() {
+    setNewQuestionData(prevState => ({
+      ...prevState,
+      choices: [...prevState.choices, ''], // Add an empty choice
+    }));
+  }
+
+  // ******************
+  // This function handles when the New Question button is pressed
+  // ******************
   function handleNewQuestion() {
     console.log('Creating a new question...');
     setShowForm(true);
   }
 
+  // ******************
+  // This function handles when the Submit Question button is pressed
+  // ******************
   function handleSubmitQuestion() { //TODO: MCQ, numerical, matching, multiple answers, ...
     console.log('Submitting question...');
     console.log('Form Values:', newQuestionData);
@@ -107,6 +183,9 @@ const Home = () => {
         type: newQuestionData.type
       }]));
     }
+    else if(newQuestionData.type=="multiple_choice_question") {
+      const { SCBT, choices, number, points, quarter, quiz_title, stem, type } = newQuestionData;
+    }
 
     setNewQuestionData({ // resetting form
       quiz_title: '',
@@ -122,6 +201,9 @@ const Home = () => {
     setShowForm(false);
   }
 
+  // ******************
+  // This handles when editJson is changed
+  // ******************
   useEffect(() => {
     if (editJson) {
       const titles = [...new Set(editJson.map(item => item.quiz_title))];
@@ -148,6 +230,7 @@ const Home = () => {
             onChange={handleChange} />
         <br />
         <button onClick={handleNewQuestion}>New Question</button>
+        {/* code for filtering by quiz title */}
         {editJson && (
         <div className="filter-container">
           <label htmlFor="quizTitleSelect">Select Quiz Title: </label>
@@ -159,7 +242,8 @@ const Home = () => {
           </select>
         </div>
         )}
-        {showForm && (
+        {/* code for the add question form  */}
+        {showForm && ( 
         <div className="form-container">
           <h3>Add New Question</h3>
             <form>
@@ -197,6 +281,35 @@ const Home = () => {
                 <option value="essay_question">Essay</option>
                 {/* Add more options for other question types */}
               </select><br />
+              {MCQVisible && (
+                <div>
+                  <label htmlFor="choices">Choices:</label>
+                  {MCQ.map((item, i) => {
+                    return (
+                      <input
+                        onChange={handleMCQChange}
+                        value={item.value}
+                        id={i}
+                        type={item.type}
+                        size="40"
+                      />
+                    );
+                  })}
+                  {/* {newQuestionData.choices.map((choice, index) => (
+                    <div key={index}>
+                      <input
+                        type="text"
+                        id={`choice${index}`}
+                        name={`choices[${index}]`}
+                        value={choice}
+                        onChange={handleNewData}
+                      />
+                    </div>
+                  ))} */}
+                  <button type="button" onClick={addMCQInput}>Add Choice</button>
+                </div>
+              )}
+              <br />
 
               <button type="button" onClick={handleSubmitQuestion}>Submit Question</button>
             </form>
