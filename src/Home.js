@@ -14,12 +14,26 @@ const Home = () => {
     }
   ];
 
+  // The correct answer choices for multiple answer questions
+  const inputCorrect = [
+    {
+      type: "text",
+      id: 1,
+      value: ""
+    }
+  ];
+
   const [MCQ, setMCQ] = useState(inputMCQ);
+  const [multipleAnswers, setMultipleAnswers] = useState(inputCorrect);
   const [editJson, setEditJson] = useState(null);
   const [selectedQuizTitle, setSelectedQuizTitle] = useState('');
   const [quizTitles, setQuizTitles] = useState([]);
   const [showForm, setShowForm] = useState(false); // State to control form visibility
   const [MCQVisible, setMCQVisible] = useState(false); // state to control multiple choice question 
+  const [numericalVisible, setNumericalVisible] = useState(false); // state to control numerical question extra inputs
+  const [minValue, setMinValue] = useState(''); // state to control numerical question min input
+  const [maxValue, setMaxValue] = useState(''); // state to control numerical question max input
+  const [multipleAnswersVisible, setMultipleAnswersVisible] = useState(false); // state to control multiple answers questions extra inputs
   const [newQuestionData, setNewQuestionData] = useState({
     quiz_title: '',
     SCBT: '',
@@ -29,7 +43,8 @@ const Home = () => {
     stem: '',
     type: '',
     answer_ranges: [],
-    choices: []
+    choices: [],
+    correct_answers: []
   });
 
   // ******************
@@ -46,6 +61,37 @@ const Home = () => {
         }
       ];
     });
+
+    // console.log(MCQ);
+    setNewQuestionData(prevData => ({
+      ...prevData,
+      choices: MCQ.map(choice => choice.value) // Assuming MCQ contains objects with a 'value' property
+    }));
+
+    // console.log(newQuestionData);
+  };
+
+  // ******************
+  // This function handles when the "Add Answer" button is clicked
+  // ******************  
+  const addMultipleAnswerInput = () => {
+    setMultipleAnswers(s => {
+      const lastId = s[s.length - 1].id;
+      return [
+        ...s,
+        {
+          type: "text",
+          value: ""
+        }
+      ];
+    });
+
+    setNewQuestionData(prevData => ({
+      ...prevData,
+      correct_answers: multipleAnswers.map(correct_answers => correct_answers.value) // Assuming MCQ contains objects with a 'value' property
+    }));
+
+    // console.log(newQuestionData);
   };
 
   // ******************
@@ -56,6 +102,32 @@ const Home = () => {
 
     const index = e.target.id;
     setMCQ(s => {
+      const newArr = s.slice();
+      newArr[index].value = e.target.value;
+
+      return newArr;
+    });
+  };
+
+  // ******************
+  // This function handles when numerical question ranges are submitted
+  // ******************  
+  const handleUpdateAnswerRanges = () => {
+    const answerRanges = [{ min: minValue, max: maxValue }];
+    console.log(answerRanges)
+    setNewQuestionData(prevData => ({ ...prevData, answer_ranges: answerRanges }));
+    // setShowNumericalInputs(false); // Hide the numerical inputs after updating
+    // console.log(newQuestionData);
+  };
+
+  // ******************
+  // This function handles when text is inputted into the choices and correct answers fields
+  // ******************  
+  const handleMultipleAnswersChange = e => {
+    e.preventDefault();
+
+    const index = e.target.id;
+    setMultipleAnswers(s => {
       const newArr = s.slice();
       newArr[index].value = e.target.value;
 
@@ -133,6 +205,22 @@ const Home = () => {
         setMCQVisible(false);
         console.log("Setting MCQ invisible")
       }
+
+      if (value === 'numerical_question') {
+        setNumericalVisible(true);
+        console.log("Setting Numerical visible")
+      } else {
+        setNumericalVisible(false);
+        console.log("Setting Numerical invisible")
+      }
+
+      if (value === 'multiple_answers_question') {
+        setMultipleAnswersVisible(true);
+        console.log("Setting multiple answers question visible")
+      } else {
+        setMultipleAnswersVisible(false);
+        console.log("Setting multiple answers question invisible")
+      }
     }
   }
 
@@ -185,6 +273,80 @@ const Home = () => {
     }
     else if(newQuestionData.type=="multiple_choice_question") {
       const { SCBT, choices, number, points, quarter, quiz_title, stem, type } = newQuestionData;
+      const jsonEntry = JSON.stringify({ SCBT, choices, number, points, quarter, quiz_title, stem, type });
+      console.log('JSON entry:', jsonEntry);
+      setEditJson(prevEditJson => (prevEditJson ? [...prevEditJson, {
+        SCBT: newQuestionData.SCBT,
+        choices: newQuestionData.choices,
+        number: newQuestionData.number,
+        points: newQuestionData.points,
+        quarter: newQuestionData.quarter,
+        quiz_title: newQuestionData.quiz_title,
+        stem: newQuestionData.stem,
+        type: newQuestionData.type
+      }] : [{
+        SCBT: newQuestionData.SCBT,
+        choices: newQuestionData.choices,
+        number: newQuestionData.number,
+        points: newQuestionData.points,
+        quarter: newQuestionData.quarter,
+        quiz_title: newQuestionData.quiz_title,
+        stem: newQuestionData.stem,
+        type: newQuestionData.type
+      }]));
+      setMCQVisible(false);
+    }
+    else if(newQuestionData.type=="numerical_question") {
+      const { SCBT, answer_ranges, number, points, quarter, quiz_title, stem, type } = newQuestionData;
+      const jsonEntry = JSON.stringify({ SCBT, answer_ranges, number, points, quarter, quiz_title, stem, type });
+      console.log('JSON entry:', jsonEntry);
+      setEditJson(prevEditJson => (prevEditJson ? [...prevEditJson, {
+        SCBT: newQuestionData.SCBT,
+        answer_ranges: newQuestionData.answer_ranges,
+        number: newQuestionData.number,
+        points: newQuestionData.points,
+        quarter: newQuestionData.quarter,
+        quiz_title: newQuestionData.quiz_title,
+        stem: newQuestionData.stem,
+        type: newQuestionData.type
+      }] : [{
+        SCBT: newQuestionData.SCBT,
+        answer_ranges: newQuestionData.answer_ranges,
+        number: newQuestionData.number,
+        points: newQuestionData.points,
+        quarter: newQuestionData.quarter,
+        quiz_title: newQuestionData.quiz_title,
+        stem: newQuestionData.stem,
+        type: newQuestionData.type
+      }]));
+      setNumericalVisible(false);
+    }
+    else if(newQuestionData.type=="multiple_answers_question") {
+      const { SCBT, choices, correct_answers, number, points, quarter, quiz_title, stem, type } = newQuestionData;
+      const jsonEntry = JSON.stringify({ SCBT, correct_answers, number, points, quarter, quiz_title, stem, type });
+      console.log('JSON entry:', jsonEntry);
+      setEditJson(prevEditJson => (prevEditJson ? [...prevEditJson, {
+        SCBT: newQuestionData.SCBT,
+        choices: newQuestionData.choices,
+        correct_answers: newQuestionData.correct_answers,
+        number: newQuestionData.number,
+        points: newQuestionData.points,
+        quarter: newQuestionData.quarter,
+        quiz_title: newQuestionData.quiz_title,
+        stem: newQuestionData.stem,
+        type: newQuestionData.type
+      }] : [{
+        SCBT: newQuestionData.SCBT,
+        choices: newQuestionData.choices,
+        correct_answers: newQuestionData.correct_answers,
+        number: newQuestionData.number,
+        points: newQuestionData.points,
+        quarter: newQuestionData.quarter,
+        quiz_title: newQuestionData.quiz_title,
+        stem: newQuestionData.stem,
+        type: newQuestionData.type
+      }]));
+      setMultipleAnswersVisible(false);
     }
 
     setNewQuestionData({ // resetting form
@@ -196,8 +358,12 @@ const Home = () => {
       stem: '',
       type: '',
       answer_ranges: [],
-      choices: []
+      choices: [],
+      correct_answers: []
     });
+
+    setMCQ(inputMCQ);
+    setMultipleAnswers(inputCorrect);
     setShowForm(false);
   }
 
@@ -211,6 +377,45 @@ const Home = () => {
       console.log(editJson);
     }
   }, [editJson]);
+
+  // ******************
+  // This function handles when numerical question ranges are updated
+  // ******************  
+  useEffect(() => {
+    console.log('New answer ranges:', newQuestionData.answer_ranges);
+    setNewQuestionData(prevData => ({
+      ...prevData,
+      answer_ranges: newQuestionData.answer_ranges,
+    }));
+
+    console.log(newQuestionData);
+  }, [newQuestionData.answer_ranges]);
+
+  // ******************
+  // This function handles when MCQ question ranges are updated
+  // ******************  
+  useEffect(() => {
+    setNewQuestionData(prevData => ({
+      ...prevData,
+      choices: newQuestionData.choices,
+    }));
+
+    console.log(newQuestionData);
+  }, [newQuestionData.choices]);
+
+  // ******************
+  // This function handles when multiple answer question ranges are updated
+  // ******************  
+  useEffect(() => {
+    setNewQuestionData(prevData => ({
+      ...prevData,
+      correct_answers: newQuestionData.correct_answers,
+    }));
+
+    console.log(newQuestionData);
+  }, [newQuestionData.correct_answers]);
+
+
 
    // Filter table data based on selected quiz title
    const filteredData = selectedQuizTitle
@@ -307,6 +512,58 @@ const Home = () => {
                     </div>
                   ))} */}
                   <button type="button" onClick={addMCQInput}>Add Choice</button>
+                </div>
+              )}
+              {numericalVisible && (
+                <div>
+                  <label htmlFor="minValueInput">Min Value:</label>
+                  <input
+                    type="number"
+                    id="minValueInput"
+                    name="minValue"
+                    value={minValue}
+                    onChange={(e) => setMinValue(e.target.value)}
+                  /><br />
+                  <label htmlFor="maxValueInput">Max Value:</label>
+                  <input
+                    type="number"
+                    id="maxValueInput"
+                    name="maxValue"
+                    value={maxValue}
+                    onChange={(e) => setMaxValue(e.target.value)}
+                  /><br />
+                  <button type="button" onClick={handleUpdateAnswerRanges}>Update Answer Ranges</button>
+                </div>
+              )}
+              {multipleAnswersVisible && (
+                <div>
+                  <label htmlFor="choices">Choices:</label>
+                  {MCQ.map((item, i) => {
+                    return (
+                      <input
+                        onChange={handleMCQChange}
+                        value={item.value}
+                        id={i}
+                        type={item.type}
+                        size="40"
+                      />
+                    );
+                  })}
+                  <button type="button" onClick={addMCQInput}>Add Choice</button>
+                  <br />
+                  <label htmlFor="answers">Correct Answers:</label>
+                  {multipleAnswers.map((item, i) => {
+                    return (
+                      <input
+                        onChange={handleMultipleAnswersChange}
+                        value={item.value}
+                        id={i}
+                        type={item.type}
+                        size="40"
+                      />
+                    );
+                  })}
+                  <button type="button" onClick={addMultipleAnswerInput}>Add Choice</button>
                 </div>
               )}
               <br />
