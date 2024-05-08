@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import './Home.css'
 import { useState, useEffect } from 'react'
+import { saveAs } from 'file-saver';
+
 
 const Home = () => {
 
@@ -25,6 +27,8 @@ const Home = () => {
 
   const [MCQ, setMCQ] = useState(inputMCQ);
   const [multipleAnswers, setMultipleAnswers] = useState(inputCorrect);
+  const [matchingPrompts, setMatchingPrompts] = useState(['']); // prompts list for matching questions
+  const [matchingMatches, setMatchingMatches] = useState(['']); // matches list for matching questions
   const [editJson, setEditJson] = useState(null);
   const [selectedQuizTitle, setSelectedQuizTitle] = useState('');
   const [quizTitles, setQuizTitles] = useState([]);
@@ -34,6 +38,7 @@ const Home = () => {
   const [minValue, setMinValue] = useState(''); // state to control numerical question min input
   const [maxValue, setMaxValue] = useState(''); // state to control numerical question max input
   const [multipleAnswersVisible, setMultipleAnswersVisible] = useState(false); // state to control multiple answers questions extra inputs
+  const [matchingVisible, setMatchingVisible] = useState(false); // state to control matching questions extra inputs
   const [newQuestionData, setNewQuestionData] = useState({
     quiz_title: '',
     SCBT: '',
@@ -44,7 +49,8 @@ const Home = () => {
     type: '',
     answer_ranges: [],
     choices: [],
-    correct_answers: []
+    correct_answers: [],
+    correct_matches : []
   });
 
   // ******************
@@ -140,6 +146,38 @@ const Home = () => {
   }
 
   // ******************
+  // This function handles when text is inputted into the prompts and matches fields
+  // ******************  
+  const addMatchingInput = () => {
+    setNewQuestionData(prevData => ({
+      ...prevData,
+      correct_matches: [
+        ...prevData.correct_matches,
+        { match: '', prompt: '' } // Initialize a new prompt-match pair
+      ]
+    }));
+
+    console.log(newQuestionData);
+  };
+
+  const handleMatchingData = (e, index, type) => {
+    const { value } = e.target;
+  
+    setNewQuestionData(prevData => ({
+      ...prevData,
+      correct_matches: prevData.correct_matches.map((pair, i) => {
+        if (i === index) {
+          return {
+            ...pair,
+            [type]: value
+          };
+        }
+        return pair;
+      })
+    }));
+  };
+
+  // ******************
   // This function handles when a json file is inputted
   // ******************
   function handleChange(e) {
@@ -220,6 +258,14 @@ const Home = () => {
       } else {
         setMultipleAnswersVisible(false);
         console.log("Setting multiple answers question invisible")
+      }
+
+      if(value === 'matching_question') {
+        setMatchingVisible(true);
+        console.log("Setting matching question visible");
+      } else {
+        setMatchingVisible(false);
+        console.log("Setting matching question invisible");
       }
     }
   }
@@ -348,6 +394,31 @@ const Home = () => {
       }]));
       setMultipleAnswersVisible(false);
     }
+    else if(newQuestionData.type=="matching_question") {
+      const { SCBT, correct_matches, number, points, quarter, quiz_title, stem, type } = newQuestionData;
+      const jsonEntry = JSON.stringify({ SCBT, correct_matches, number, points, quarter, quiz_title, stem, type });
+      console.log('JSON entry:', jsonEntry);
+      setEditJson(prevEditJson => (prevEditJson ? [...prevEditJson, {
+        SCBT: newQuestionData.SCBT,
+        correct_matches: newQuestionData.correct_matches,
+        number: newQuestionData.number,
+        points: newQuestionData.points,
+        quarter: newQuestionData.quarter,
+        quiz_title: newQuestionData.quiz_title,
+        stem: newQuestionData.stem,
+        type: newQuestionData.type
+      }] : [{
+        SCBT: newQuestionData.SCBT,
+        correct_matches: newQuestionData.correct_matches,
+        number: newQuestionData.number,
+        points: newQuestionData.points,
+        quarter: newQuestionData.quarter,
+        quiz_title: newQuestionData.quiz_title,
+        stem: newQuestionData.stem,
+        type: newQuestionData.type
+      }]));
+      setMatchingVisible(false);
+    }
 
     setNewQuestionData({ // resetting form
       quiz_title: '',
@@ -359,13 +430,24 @@ const Home = () => {
       type: '',
       answer_ranges: [],
       choices: [],
-      correct_answers: []
+      correct_answers: [],
+      correct_matches: [],
     });
 
     setMCQ(inputMCQ);
     setMultipleAnswers(inputCorrect);
     setShowForm(false);
   }
+
+  // ******************
+  // This handles when the "Save as JSON" button is clicked
+  // ******************
+  const saveAsJsonFile = () => {
+    const json = JSON.stringify(editJson, null, 2); // Convert editJson to formatted JSON string
+    const blob = new Blob([json], { type: 'application/json' });
+    saveAs(blob, 'editJsonData.json');
+  };
+
 
   // ******************
   // This handles when editJson is changed
@@ -566,6 +648,29 @@ const Home = () => {
                   <button type="button" onClick={addMultipleAnswerInput}>Add Choice</button>
                 </div>
               )}
+              {matchingVisible && (
+                <div>
+                  {newQuestionData.correct_matches.map((pair, index) => (
+                    <div key={index}>
+                      <label htmlFor={`promptInput${index}`}>Prompt:</label>
+                      <input
+                        type="text"
+                        id={`promptInput${index}`}
+                        value={pair.prompt}
+                        onChange={(e) => handleMatchingData(e, index, 'prompt')}
+                      />
+                      <label htmlFor={`matchInput${index}`}>Match:</label>
+                      <input
+                        type="text"
+                        id={`matchInput${index}`}
+                        value={pair.match}
+                        onChange={(e) => handleMatchingData(e, index, 'match')}
+                      />
+                    </div>
+                  ))}
+                  <button type="button" onClick={addMatchingInput}>Add prompt / match</button>
+                </div>
+              )}
               <br />
 
               <button type="button" onClick={handleSubmitQuestion}>Submit Question</button>
@@ -575,6 +680,7 @@ const Home = () => {
         </div>
         {editJson && (
         <div className="table-container">
+          <button onClick={saveAsJsonFile}>Save as JSON</button>
           <h3>JSON Data</h3>
           <table className="styled-table">
             <thead>
