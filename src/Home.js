@@ -3,6 +3,9 @@ import './Home.css'
 import { useState, useEffect } from 'react'
 import { saveAs } from 'file-saver';
 
+// TODO: make the form look nicer
+// add a remove button to the MCQ and other types?
+// change save location
 
 const Home = () => {
 
@@ -291,7 +294,7 @@ const Home = () => {
   // ******************
   // This function handles when the Submit Question button is pressed
   // ******************
-  function handleSubmitQuestion() { //TODO: MCQ, numerical, matching, multiple answers, ...
+  function handleSubmitQuestion() { 
     console.log('Submitting question...');
     console.log('Form Values:', newQuestionData);
 
