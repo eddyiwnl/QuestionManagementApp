@@ -34,7 +34,9 @@ const Home = () => {
   const [matchingMatches, setMatchingMatches] = useState(['']); // matches list for matching questions
   const [editJson, setEditJson] = useState(null);
   const [selectedQuizTitle, setSelectedQuizTitle] = useState('');
+  const [selectedSCBT, setSelectedSCBT] = useState('');
   const [quizTitles, setQuizTitles] = useState([]);
+  const [allSCBT, setAllSCBT] = useState([]);
   const [showForm, setShowForm] = useState(false); // State to control form visibility
   const [MCQVisible, setMCQVisible] = useState(false); // state to control multiple choice question 
   const [numericalVisible, setNumericalVisible] = useState(false); // state to control numerical question extra inputs
@@ -459,6 +461,8 @@ const Home = () => {
     if (editJson) {
       const titles = [...new Set(editJson.map(item => item.quiz_title))];
       setQuizTitles(titles.sort());
+      const scbts = [...new Set(editJson.map(item => item.SCBT))];
+      setAllSCBT(scbts.sort());
       console.log(editJson);
     }
   }, [editJson]);
@@ -503,10 +507,13 @@ const Home = () => {
 
 
    // Filter table data based on selected quiz title
-   const filteredData = selectedQuizTitle
-     ? editJson.filter(item => item.quiz_title === selectedQuizTitle)
-     : editJson;
+  //  const filteredData = selectedQuizTitle
+  //    ? editJson.filter(item => item.quiz_title === selectedQuizTitle)
+  //    : editJson;
 
+  const filteredData = editJson ? editJson
+    .filter(item => !selectedQuizTitle || item.quiz_title === selectedQuizTitle)
+    .filter(item => !selectedSCBT || item.SCBT === selectedSCBT) : [];
   
   return (
     <section className='section'>
@@ -528,6 +535,13 @@ const Home = () => {
             <option value="">All</option>
             {quizTitles.map((title, index) => (
               <option key={index} value={title}>{title}</option>
+            ))}
+          </select>
+          <label htmlFor="scbtSelect">Select SCBT: </label>
+          <select id="scbtSelect" value={selectedSCBT} onChange={(e) => setSelectedSCBT(e.target.value)}>
+            <option value="">All</option>
+            {allSCBT.map((scbt, index) => (
+              <option key={index} value={scbt}>{scbt}</option>
             ))}
           </select>
         </div>
